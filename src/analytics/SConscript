@@ -145,7 +145,7 @@ vizd_sources = ['viz_collector.cc', 'ruleeng.cc', 'collector.cc',
                 'protobuf_server.cc',
                 'sflow.cc',
                 'sflow_generator.cc', 'sflow_collector.cc',
-                'sflow_parser.cc', 'ipfix_collector.cc']
+                'sflow_parser.cc', 'ipfix_collector.cc', 'cw_flow_handler.cc']
 
 RedisLuaBuild(AnalyticsEnv, 'seqnum')
 RedisLuaBuild(AnalyticsEnv, 'delrequest')
@@ -236,10 +236,10 @@ AnalyticsEnv.Alias('install', AnalyticsEnv.InstallAs(
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
             AnalyticsEnv['INSTALL_CONF'], 'supervisord_analytics.conf'))
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
-            AnalyticsEnv['INSTALL_CONF'] + 
+            AnalyticsEnv['INSTALL_CONF'] +
             '/supervisord_analytics_files', 'contrail-analytics.rules'))
 AnalyticsEnv.Alias('install', AnalyticsEnv.Install(
-            AnalyticsEnv['INSTALL_CONF'] + 
+            AnalyticsEnv['INSTALL_CONF'] +
             '/supervisord_analytics_files', 'contrail-collector.ini'))
 
 AnalyticsEnv.SConscript(dirs=['contrail-snmp-collector'],

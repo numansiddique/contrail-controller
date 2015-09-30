@@ -39,6 +39,7 @@
 #include <base/connection_info.h>
 #include "io/event_manager.h"
 #include "base/sandesh/process_info_types.h"
+#include "cw_flow_handler.h"
 
 #include <sandesh/sandesh_types.h>
 #include <sandesh/sandesh.h>
@@ -194,7 +195,10 @@ private:
     static const int kDefaultSessionBufferSize = 16 * 1024;
 
     static DiscoveryServiceClient *ds_client_;
-
+#define CW_FLOW_HANDLER
+#ifdef CW_FLOW_HANDLER
+    CWFlowHandler *cw_flow_handler_;
+#endif
     DISALLOW_COPY_AND_ASSIGN(Collector);
 };
 

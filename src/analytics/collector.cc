@@ -35,6 +35,7 @@
 #include "viz_collector.h"
 #include "viz_sandesh.h"
 #include "gendb_types.h"
+#include "cw_flow_handler.h"
 
 using std::string;
 using std::map;
@@ -47,6 +48,7 @@ using process::ConnectionState;
 using process::ConnectionType;
 using process::ConnectionStatus;
 
+#define CW_FLOW_HANDLER
 
 std::string Collector::prog_name_;
 std::string Collector::self_ip_;
@@ -112,6 +114,11 @@ Collector::Collector(EventManager *evm, short server_port,
     Module::type module = Module::COLLECTOR;
     string module_name = g_vns_constants.ModuleNames.find(module)->second;
     Sandesh::RecordPort("collector", module_name, GetPort());
+
+#ifdef CW_FLOW_HANDLER
+    cw_flow_handler_ = new CWFlowHandler(evm);
+    cw_flow_handler_->Init();
+#endif
 }
 
 Collector::~Collector() {
@@ -130,6 +137,9 @@ void Collector::SessionShutdown() {
 
 void Collector::Shutdown() {
     SandeshServer::Shutdown();
+#ifdef CW_FLOW_HANDLER
+    cw_flow_handler_->Shutdown();
+#endif
 }
 
 void Collector::RedisUpdate(bool rsc) {
@@ -189,7 +199,6 @@ bool Collector::ReceiveResourceUpdate(SandeshSession *session,
 bool Collector::ReceiveSandeshMsg(SandeshSession *session,
                                   const SandeshMessage *msg, bool rsc) {
     boost::uuids::uuid unm(umn_gen_());
-
     VizMsg vmsg(msg, unm);
 
     VizSession *vsession = dynamic_cast<VizSession *>(session);
@@ -200,7 +209,15 @@ bool Collector::ReceiveSandeshMsg(SandeshSession *session,
     }
     SandeshGenerator *gen = vsession->generator();
     if (gen) {
-        return gen->ReceiveSandeshMsg(&vmsg, rsc);
+	bool retval = gen->ReceiveSandeshMsg(&vmsg, rsc);
+
+#define CW_FLOW_HANDLER
+#ifdef CW_FLOW_HANDLER
+	if (vmsg.msg->GetHeader().get_Type() == SandeshType::FLOW)
+	    cw_flow_handler_->HandleFlowMessage(&vmsg);
+#endif
+
+	return retval;
     } else {
         increment_no_generator_error();
         LOG(ERROR, __func__ << ": Sandesh message " << msg->GetMessageType() <<
