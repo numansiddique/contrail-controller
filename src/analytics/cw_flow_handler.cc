@@ -71,9 +71,17 @@ void *CWFlowHandler::ThreadRun(void *objp) {
          while (flow_queue_.pop(flow_message)) {
             flow_handler->ProcessFlowMessage(*flow_message);
             delete flow_message;
-            sleep(1);
+            //sleep(1);
+            /* putting the sleep so that the flow messages are sent in order
+               and all the flow messages are sent.
+               For some reason the HttpClient class was not sending the messages
+               in order. Hence added a thread and a queue
+               */
+            usleep(1000);
         }
-        sleep(1);
+        //sleep(1);
+        usleep(1000);
     }
     return NULL;
 }
+
